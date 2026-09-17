@@ -43,28 +43,37 @@ async def backup(interaction: discord.Interaction):
     Download all messages sent in this channel as a JSON file.
     """
 
-    # Converts a `discord.Message` to a dictionary so that it can be serialized by `json`.
+    # Util function that converts a `discord.Message` to a dictionary so that it can be serialized by `json`
     def get_message_fields(message: discord.Message):
         return {
             "author": message.author.name,
             "message": message.clean_content,
-            "reactions": list(map(lambda r: {"emoji": r.emoji, "count": r.count}, message.reactions)),
+            "reactions": list(map(lambda r: {"emoji": "custom_" + r.emoji.name if r.is_custom_emoji() else r.emoji, "count": r.count}, message.reactions)),
             "created_at": message.created_at.isoformat(sep=" ", timespec="seconds"),
         }
 
+    # Send reply
+    print("Sending initial response...")
+    await interaction.response.send_message("Working on it...")
+
     # Get the messages
+    print("Getting messages...")
     messages = [get_message_fields(message) async for message in interaction.channel.history(limit=None, oldest_first=True)]
 
     # Store in JSON file
+    print("Saving to JSON file...")
     os.makedirs("tmp")
-    with open("./tmp/messages.json", "w") as f:
+    with open("messages.json", "w") as f:
         json.dump(messages, f, indent=4)
 
     # Send the JSON file
-    await interaction.response.send_message(file=discord.File("./tmp/messages.json"))
+    print("Updating response...")
+    await interaction.edit_original_response(content="Done! Download them quick, before they're gone :P", attachments=[discord.File(
+        "messages.json")])
 
     # Delete the JSON file
-    os.remove("./tmp/messages.json")
+    print("Deleting JSON file...")
+    os.remove("messages.json")
     os.removedirs("./tmp")
 
 
