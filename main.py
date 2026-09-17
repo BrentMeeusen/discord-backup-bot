@@ -17,7 +17,7 @@ class BackupClient(discord.Client):
         self.tree = discord.app_commands.CommandTree(self)
 
     async def setup_hook(self) -> None:
-        if not os.environ["TEST_SERVER_ID"]:
+        if "TEST_SERVER_ID" not in os.environ:
             print("No test server ID provided. Continuing without force-refresh.")
             return
 
